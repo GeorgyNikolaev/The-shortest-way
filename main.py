@@ -1,3 +1,4 @@
+import numpy
 from deap import base, algorithms, creator, tools
 import random
 import matplotlib.pyplot as plt
@@ -8,7 +9,7 @@ import graph_show
 
 cntVertex = 31
 start = 0
-end = 30
+end = 29
 # end = random.randint(1, cntVertex+1)
 minDistance = 1
 maxDistance = 20
@@ -16,11 +17,11 @@ pointInLayer = 3
 LENGTH_CHROM = cntVertex
 
 inf = 1000000
-pInf = 0.4
-POPULATION_SIZE = 10000
+pInf = 0.5
+POPULATION_SIZE = 1000
 P_CROSSOVER = 0.9
 P_MUTATION = 0.3
-MAX_GENERATIONS = 100
+MAX_GENERATIONS = 30
 HALL_OF_FAME_SIZE = 1
 
 hof = tools.HallOfFame(HALL_OF_FAME_SIZE)
@@ -57,7 +58,8 @@ def dikstryFitness(individual):
     e = max(start, end)
     first_index = s
     for i in ind:
-        summ += distances[first_index][i]
+        distance = distances[first_index][i]
+        summ += distance
         first_index = i
         if i == e:
             break
@@ -71,12 +73,25 @@ def cxOrdered(ind1, ind2):
 
 
 def mutShuffleIndexes(individual, indpb):
+    first_index = start
+    index = 0
+    for _ in range(sum(range(LENGTH_CHROM))):
+        if index == LENGTH_CHROM:
+            break
+        v = individual[0][index]
+        distance = distances[first_index][v]
+        if distance == inf:
+            individual[0].insert(LENGTH_CHROM-1, individual[0].pop(individual[0].index(v)))
+        else:
+            first_index = v
+            index += 1
     tools.mutShuffleIndexes(individual[0], indpb)
 
     return individual,
 
+
 toolbox.register("evaluate", dikstryFitness)
-toolbox.register("select", tools.selTournament, tournsize=3)
+toolbox.register("select", tools.selTournament, tournsize=10)
 toolbox.register("mate", cxOrdered)
 toolbox.register("mutate", mutShuffleIndexes, indpb=1.0/LENGTH_CHROM/10)
 
